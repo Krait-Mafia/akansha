@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRAIT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00f7ff;
+            --primary-glow: #00f7ff80;
+            --secondary: #ff00c8;
+            --secondary-glow: #ff00c880;
+            --accent: #9600ff;
+            --success: #00ff9d;
+            --warning: #ffcc00;
+            --danger: #ff3366;
+            --dark: #0a0a18;
+            --darker: #050510;
+            --light: #ccd6f6;
+            --gray: #8892b0;
+            --cyber-border: #00f7ff33;
+            --cyber-bg: rgba(10, 15, 35, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', 'Orbitron', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 247, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 200, 0.05) 0%, transparent 20%),
+                linear-gradient(to bottom, var(--darker), var(--dark));
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            z-index: 100;
+            animation: scanline 8s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { top: 0; }
+            100% { top: 100vh; }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cyberpunk-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, var(--primary) 3px, transparent 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, var(--secondary) 3px, transparent 4px);
+        }
+        
+        header {
+            background: var(--cyber-bg);
+            color: var(--light);
+            padding: 25px;
+            border: 1px solid var(--cyber-border);
+            border-radius: 4px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 0 15px var(--primary-glow),
+                inset 0 0 10px rgba(0, 247, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--primary-glow);
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+            min-height: 24px;
+        }
+        
+        .auto-type {
+            color: var(--primary);
+            border-right: 2px solid var(--primary);
+            animation: blink 0.7s infinite;
+            padding-right: 2px;
+        }
+        
+        @keyframes blink {
+            0%, 100% { border-color: var(--primary); }
+            50% { border-color: transparent; }
+        }
+        
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: var(--cyber-bg);
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--cyber-border);
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.1);
+        }
+        
+        .nav-tab {
+            padding: 12px 25px;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            border: 1px solid var(--cyber-border);
+            color: var(--gray);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
+        }
+        
+        .nav-tab::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 247, 255, 0.2), transparent);
+            transition: all 0.5s ease;
+        }
+        
+        .nav-tab:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        
+        .nav-tab:hover::before {
+            left: 100%;
+        }
+        
+        .nav-tab.active {
+            background: rgba(0, 247, 255, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 
+                0 0 15px var(--primary-glow),
+                inset 0 0 10px rgba(0, 247, 255, 0.1);
+        }
+        
+        .page {
+            display: none;
+            background: var(--cyber-bg);
+            border-radius: 4px;
+            padding: 25px;
+            border: 1px solid var(--cyber-border);
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.1);
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .page::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            border-top: 2px solid var(--primary);
+            border-right: 2px solid var(--primary);
+        }
+        
+        .page::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 30px;
+            height: 30px;
+            border-bottom: 2px solid var(--secondary);
+            border-left: 2px solid var(--secondary);
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--cyber-border);
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--primary-glow);
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-title::before {
+            content: ">> ";
+            color: var(--secondary);
+            margin-right: 10px;
+        }
+        
+        /* NEW STYLES FOR TOPIC-WISE CHECKBOXES */
+        .chapter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 15px;
+            background: rgba(0, 10, 30, 0.5);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid var(--cyber-border);
+            transition: all 0.3s ease;
+        }
+        
+        .chapter-header:hover {
+            background: rgba(0, 247, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 247, 255, 0.2);
+        }
+        
+        .chapter-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .chapter-progress {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .chapter-progress-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--cyber-border);
+        }
+        
+        .chapter-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .chapter-progress-text {
+            font-size: 0.9rem;
+            color: var(--gray);
+            min-width: 50px;
+            text-align: right;
+        }
+        
+        .topics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 0 15px;
+        }
+        
+        .topic-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            background: rgba(10, 15, 30, 0.3);
+            border-radius: 4px;
+            border: 1px solid var(--cyber-border);
+            transition: all 0.3s ease;
+        }
+        
+        .topic-item:hover {
+            background: rgba(0, 247, 255, 0.05);
+            box-shadow: 0 0 10px rgba(0, 247, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .topic-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .topic-name {
+            flex: 1;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+        
+        .topic-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        
+        .checkbox-label {
+            margin-left: 8px;
+            color: var(--gray);
+        }
+        
+        .topic-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gray);
+            margin-left: 10px;
+        }
+        
+        .topic-status.completed {
+            background: var(--success);
+            box-shadow: 0 0 5px var(--success);
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Enhanced Cyberpunk Checkbox Styles */
+        .cyber-checkbox {
+            display: none;
+        }
+        
+        .cyber-checkbox + label {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--cyber-border);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 10, 30, 0.7);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .cyber-checkbox + label::before {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background: var(--gray);
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            transform: scale(0);
+        }
+        
+        .cyber-checkbox:checked + label {
+            background: rgba(0, 247, 255, 0.2);
+            border-color: var(--primary);
+            box-shadow: 
+                0 0 10px var(--primary-glow),
+                inset 0 0 5px rgba(0, 247, 255, 0.3);
+        }
+        
+        .cyber-checkbox:checked + label::before {
+            transform: scale(1);
+            background: var(--primary);
+            box-shadow: 0 0 5px var(--primary);
+        }
+        
+        .cyber-checkbox:checked + label::after {
+            content: "✓";
+            position: absolute;
+            color: var(--dark);
+            font-size: 10px;
+            font-weight: bold;
+            top: 1px;
+            left: 3px;
+        }
+        
+        /* NEET Fail Humor Elements */
+        .neet-humor {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .neet-humor::before {
+            content: "⚠️";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .humor-title {
+            color: var(--danger);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .humor-text {
+            font-size: 0.9rem;
+            color: var(--light);
+            font-style: italic;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 6px;
+            margin: 30px 0;
+            overflow: hidden;
+            border: 1px solid var(--cyber-border);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            z-index: 1;
+            background-size: 20px 20px;
+            animation: move 1s linear infinite;
+        }
+        
+        @keyframes move {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: var(--cyber-bg);
+            padding: 25px;
+            border-radius: 4px;
+            border: 1px solid var(--cyber-border);
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.1);
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--secondary), var(--primary));
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px var(--primary-glow);
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .save-btn {
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: var(--darker);
+            border: none;
+            padding: 15px 35px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 0 15px var(--primary-glow);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .save-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.5s ease;
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px var(--primary-glow);
+        }
+        
+        .save-btn:hover::before {
+            left: 100%;
+        }
+        
+        .terminal-output {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(5, 10, 20, 0.9);
+            color: var(--primary);
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--primary);
+            box-shadow: 0 -5px 15px rgba(0, 247, 255, 0.2);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .terminal-prompt {
+            color: var(--secondary);
+        }
+        
+        .terminal-text {
+            overflow: hidden;
+            border-right: 2px solid var(--primary);
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--primary); }
+        }
+        
+        /* Holographic Effects */
+        .hologram {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: rgba(0, 247, 255, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 100px var(--primary-glow);
+            z-index: -1;
+            opacity: 0.1;
+            animation: pulse 8s infinite alternate;
+        }
+        
+        .hologram:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            animation-delay: -2s;
+        }
+        
+        .hologram:nth-child(3) {
+            width: 700px;
+            height: 700px;
+            animation-delay: -4s;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.05; }
+            100% { opacity: 0.15; }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--darker);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+        
+        @media (max-width: 968px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                min-width: 100%;
+            }
+            
+            .topics-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chapter-progress {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .chapter-progress-bar {
+                width: 100px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .chapter-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .chapter-progress {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .chapter-progress-bar {
+                flex: 1;
+                margin: 0 10px;
+            }
+            
+            .topic-checkboxes {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyberpunk-bg"></div>
+    <div class="hologram"></div>
+    <div class="hologram"></div>
+    <div class="hologram"></div>
+    
+    <div class="container">
+        <header>
+            <h1>KRAIT Tracker</h1>
+            <p class="subtitle" id="autoType">SYSTEM INITIALIZED // TRACKING 807 KNOWLEDGE NODES</p>
+        </header>
+        
+        <div class="neet-humor">
+            <div class="humor-title">NEET FAIL DROP #3</div>
+            <div class="humor-text">"They said 'third time's the charm'... I'm on my fourth attempt now. Maybe they meant fourth?"</div>
+        </div>
+        
+        <div class="nav-tabs" id="subjectTabs">
+            <!-- Tabs will be generated by JavaScript -->
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="overallProgress"></div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTopics">807</div>
+                <div class="stat-label">Total Knowledge Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedTopics">0</div>
+                <div class="stat-label">Assimilated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completionRate">0%</div>
+                <div class="stat-label">Assimilation Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="remainingTopics">807</div>
+                <div class="stat-label">Pending Assimilation</div>
+            </div>
+        </div>
+        
+        <div class="neet-humor">
+            <div class="humor-title">NEET FAIL DROP #2</div>
+            <div class="humor-text">"My parents think NEET stands for 'No Employment Ever Taken'. They're not wrong."</div>
+        </div>
+        
+        <div class="page active" id="page-physics">
+            <h2 class="page-title">Physics Knowledge Matrix</h2>
+            <div class="chapter-container" id="physicsChapters">
+                <!-- Physics chapters will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="page" id="page-chemistry">
+            <h2 class="page-title">Chemistry Knowledge Matrix</h2>
+            <div class="chapter-container" id="chemistryChapters">
+                <!-- Chemistry chapters will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="page" id="page-biology">
+            <h2 class="page-title">Biology Knowledge Matrix</h2>
+            <div class="chapter-container" id="biologyChapters">
+                <!-- Biology chapters will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="neet-humor">
+            <div class="humor-title">NEET FAIL DROP #1</div>
+            <div class="humor-text">"I've failed NEET so many times, even my backup plans have backup plans."</div>
+        </div>
+        
+        <button class="save-btn" id="saveProgress">SYNC PROGRESS TO NEURAL NETWORK</button>
+        
+        <div class="terminal-output">
+            <span class="terminal-prompt">KRAIT-TARUN://SYSTEM_MEOW-MAFIA></span>
+            <span class="terminal-text" id="terminalText">Initializing knowledge tracking system. Ready to assimilate 807 academic concepts.</span>
+        </div>
+    </div>
+
+    <script>
+        // Data structure for all 807 topics from the PDF
+        const subjects = [
+            {
+                id: 'physics',
+                name: 'Physics',
+                icon: 'fa-atom',
+                chapters: [
+                    {
+                        name: 'Electrostatics',
+                        topics: [
+                            'Coulomb’s Law',
+                            'Electric field',
+                            'Torque on a dipole',
+                            'Flux',
+                            'Gauss Law',
+                            'Straight Wire',
+                            'Plane Sheet',
+                            'Spherical shell',
+                            'Electric Potential',
+                            'Potential Energy',
+                            'Dielectrics',
+                            'Capacitors',
+                            'Spherical Capacitors',
+                            'Parallel Plate Capacitors',
+                            'Energy in Capacitors'
+                        ]
+                    },
+                    {
+                        name: 'Current Electricity',
+                        topics: [
+                            'Drift Velocity',
+                            'Mobility',
+                            'Ohm’s Law',
+                            'Resistivity',
+                            'Conductivity',
+                            'Combinations of Resistors',
+                            'Internal Resistance',
+                            'EMF',
+                            'Kirchhoff Law',
+                            'Wheatstone bridge'
+                        ]
+                    },
+                    {
+                        name: 'Magnetic Effects of Current',
+                        topics: [
+                            'Biot-Savart Law',
+                            'Force on a moving Charge',
+                            'Moving Coil Galvanometer',
+                            'Conversion of ammeter & voltmeter',
+                            'Solenoid',
+                            'Magnetic Dipole',
+                            'Dia, Para, Ferro substances'
+                        ]
+                    },
+                    {
+                        name: 'EMI & AC',
+                        topics: [
+                            'Faradays Law',
+                            'Lenz’s Law',
+                            'Inductance',
+                            'Peak Current/Voltage',
+                            'RMS Current/Voltage',
+                            'Reactance',
+                            'Impedance',
+                            'LCR Circuit',
+                            'Resonance',
+                            'Power in AC circuit',
+                            'Transformer'
+                        ]
+                    },
+                    {
+                        name: 'EM Waves',
+                        topics: [
+                            'Displacement Current',
+                            'EM Spectrum'
+                        ]
+                    },
+                    {
+                        name: 'Ray Optics',
+                        topics: [
+                            'Mirror Formula',
+                            'Lens Makers Formula',
+                            'TIR',
+                            'Power of Lens',
+                            'Prism',
+                            'Combination of lenses'
+                        ]
+                    },
+                    {
+                        name: 'Wave Optics',
+                        topics: [
+                            'YDSE',
+                            'Coherent Sources',
+                            'Diffraction',
+                            'Brewsters Law'
+                        ]
+                    },
+                    {
+                        name: 'Dual Nature of Matter & Radiation',
+                        topics: [
+                            'Threshold Energy',
+                            'Work Function (graphs)',
+                            'De-Broglie Equation'
+                        ]
+                    },
+                    {
+                        name: 'Atoms & Nuclei',
+                        topics: [
+                            'Bohr Model',
+                            'Bohr Model Formulae',
+                            'Mass Defect',
+                            'Binding Energy per Nucleon',
+                            'Fission',
+                            'Fusion'
+                        ]
+                    },
+                    {
+                        name: 'Semiconductors',
+                        topics: [
+                            'I–V Characteristics',
+                            'Rectifier',
+                            'Zener Diode',
+                            'Logic Gates'
+                        ]
+                    },
+                    {
+                        name: 'Units & Measurements',
+                        topics: [
+                            'Derived Units',
+                            'Least Count',
+                            'Significant Figures',
+                            'Dimensional analysis'
+                        ]
+                    },
+                    {
+                        name: 'Kinematics',
+                        topics: [
+                            'Relative Velocity',
+                            'Average Velocity',
+                            'Instantaneous Velocity',
+                            'Projectile Motion',
+                            'Circular Motion'
+                        ]
+                    },
+                    {
+                        name: 'Laws of Motion',
+                        topics: [
+                            'Force',
+                            'Momentum',
+                            'Impulse',
+                            'Conservative of Linear Momentum',
+                            'Friction',
+                            'Centripetal Force',
+                            'Banked Road'
+                        ]
+                    },
+                    {
+                        name: 'Work, Energy & Power',
+                        topics: [
+                            'Kinetic Energy',
+                            'Potential Energy',
+                            'Work Energy Theorem',
+                            'Power',
+                            'Spring-Block System',
+                            'Conservative forces',
+                            'Non-Conservative forces',
+                            'Vertical Circular Motion',
+                            'Elastic Collisions',
+                            'Non-Elastic Collisions'
+                        ]
+                    },
+                    {
+                        name: 'Rotational Motion',
+                        topics: [
+                            'Centre of Mass',
+                            'Torque',
+                            'Angular Momentum',
+                            'Conservative of Angular Momentum',
+                            'Moment of Inertia',
+                            'Radius of Gyration',
+                            'Parallel axis theorem',
+                            'Perpendicular axis theorem',
+                            'Equations of Rotational Motion',
+                            'Pure Rolling'
+                        ]
+                    },
+                    {
+                        name: 'Gravitation',
+                        topics: [
+                            '"g" & it’s variations',
+                            'Kepler’s law',
+                            'Gravitational Potential',
+                            'Gravitational Potential Energy',
+                            'Eescape Velocity',
+                            'Orbital Velocity',
+                            'Time period of a Satellite',
+                            'Energy of a Satellite'
+                        ]
+                    },
+                    {
+                        name: 'Solids',
+                        topics: [
+                            'Hooke’s Law',
+                            'Young’s modulus',
+                            'Bulk modulus'
+                        ]
+                    },
+                    {
+                        name: 'Fluids',
+                        topics: [
+                            'Pascal’s Law',
+                            'Effect of gravity on fluid pressure',
+                            'Viscosity',
+                            'Stokes law',
+                            'Terminal Velocity',
+                            'Reynolds Number',
+                            'Bernoulli’s Principle',
+                            'Surface Energy',
+                            'Surface Tension'
+                        ]
+                    },
+                    {
+                        name: 'Thermal Properties of Matter',
+                        topics: [
+                            'Calorimetry',
+                            'Conduction'
+                        ]
+                    },
+                    {
+                        name: 'Thermodynamics',
+                        topics: [
+                            'First Law',
+                            'Heat Capacities',
+                            'Isothermal Process',
+                            'Adiabatic Process',
+                            'Second Law',
+                            'Reversible Process',
+                            'Irreversible Process'
+                        ]
+                    },
+                    {
+                        name: 'KTG',
+                        topics: [
+                            'Ideal Gas Equation',
+                            'RMS Velocity',
+                            'Degree of Freedom',
+                            'Law of Equipartition of Energy'
+                        ]
+                    },
+                    {
+                        name: 'Oscillations & Waves',
+                        topics: [
+                            'Equations of SHM',
+                            'Spring Force',
+                            'Force Constant',
+                            'Energy in SHM',
+                            'Speed of a wave',
+                            'Organ Pipe',
+                            'Beats'
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'chemistry',
+                name: 'Chemistry',
+                icon: 'fa-flask',
+                chapters: [
+                    {
+                        name: 'Mole Concept',
+                        topics: [
+                            'Calculation of Moles',
+                            'Empirical Formula',
+                            'Stoichiometry'
+                        ]
+                    },
+                    {
+                        name: 'Atomic Structure',
+                        topics: [
+                            'Photoelectric Effect',
+                            'Formulae of Bohr’s Model',
+                            'Heisenberg Uncertainty Principle',
+                            'Quantum Numbers'
+                        ]
+                    },
+                    {
+                        name: 'Chemical Bonding',
+                        topics: [
+                            'Ionic Bonding',
+                            'Fajan’s Rule',
+                            'VBT',
+                            'Resonance',
+                            'MOT'
+                        ]
+                    },
+                    {
+                        name: 'Thermodynamics',
+                        topics: [
+                            'Intensive Properties',
+                            'Extensive Properties',
+                            'First Law',
+                            'Types of Enthalpies',
+                            'Enthalpy calculations',
+                            'Spontaneity',
+                            'Gibb’s Energy'
+                        ]
+                    },
+                    {
+                        name: 'Solutions',
+                        topics: [
+                            'Concentration Terms',
+                            'Raoults law',
+                            'Colligative Properties',
+                            'Van’t Hoff Factor'
+                        ]
+                    },
+                    {
+                        name: 'Equilibrium',
+                        topics: [
+                            'Kp',
+                            'Kc',
+                            'Le Chatelier’s Principle',
+                            'Concepts of Acids & bases',
+                            'Ionisation of Water',
+                            'pH',
+                            'Common ion effect',
+                            'Salt hydrolysis',
+                            'Buffer',
+                            'Ksp'
+                        ]
+                    },
+                    {
+                        name: 'Co-ordination Compounds',
+                        topics: [
+                            'Werner’s Theory',
+                            'IUPAC Nomenclature',
+                            'Isomerism in Coordination Compounds',
+                            'VBT',
+                            'Magnetic Theories'
+                        ]
+                    },
+                    {
+                        name: 'GOC',
+                        topics: [
+                            'Duma Method',
+                            'Kjeldahl Method',
+                            'Geometric Isomerism',
+                            'Optical Isomerism',
+                            'Electronic Effects',
+                            'Reaction Mechanism'
+                        ]
+                    },
+                    {
+                        name: 'Hydrocarbons',
+                        topics: [
+                            'Newman Projections of Ethane',
+                            'Ozonolysis',
+                            'Markovnikoffs rule',
+                            'Peroxide effect',
+                            'Acidic Character of Alkynes',
+                            'Aromaticity'
+                        ]
+                    },
+                    {
+                        name: 'Alcohols, Phenols & Ethers',
+                        topics: [
+                            'Dehydration of Alcohols',
+                            'Reimer–Tiemann reaction',
+                            'Chemical Reaction of Ether'
+                        ]
+                    },
+                    {
+                        name: 'Aldehydes, Ketones & Carboxylic Acids',
+                        topics: [
+                            'Cannizzaro Reaction',
+                            'Aldol Condensation',
+                            'HVZ reaction',
+                            'Hell–Volhard–Zelinsky'
+                        ]
+                    },
+                    {
+                        name: 'Amines',
+                        topics: [
+                            'Basic Character of Amines',
+                            'Carbylamine Reaction',
+                            'Hoffmann Bromamide Degradation Reaction'
+                        ]
+                    },
+                    {
+                        name: 'Biomolecules',
+                        topics: [
+                            'Glucose',
+                            'Fructose',
+                            'Sucrose',
+                            'Maltose',
+                            'Lactose',
+                            'Proteins',
+                            'Vitamins'
+                        ]
+                    },
+                    {
+                        name: 'Polymers',
+                        topics: [
+                            'Classification of Polymers',
+                            'Addition Polymerisation',
+                            'Condensation Polymerisation'
+                        ]
+                    },
+                    {
+                        name: 'Chemistry in Everyday Life',
+                        topics: [
+                            'Drugs & their Classification',
+                            'Antacids',
+                            'Tranquilizers',
+                            'Analgesics',
+                            'Antimicrobials',
+                            'Antifertility Drugs',
+                            'Antioxidants',
+                            'Soaps',
+                            'Detergents'
+                        ]
+                    },
+                    {
+                        name: 'Solid State',
+                        topics: [
+                            'Types of Solids',
+                            'Types of Unit Cells',
+                            'Packing Efficiency',
+                            'Schottky Defect',
+                            'Frenkel Defect'
+                        ]
+                    },
+                    {
+                        name: 'Electrochemistry',
+                        topics: [
+                            'Electrochemical Cells',
+                            'Nernst Equation',
+                            'Conductance',
+                            'Kohlrausch’s Law',
+                            'Faraday’s Laws of Electrolysis'
+                        ]
+                    },
+                    {
+                        name: 'Chemical Kinetics',
+                        topics: [
+                            'Rate of a Reaction',
+                            'Rate Law',
+                            'Order of a Reaction',
+                            'Half-life of a Reaction',
+                            'Arrhenius Equation'
+                        ]
+                    },
+                    {
+                        name: 'Surface Chemistry',
+                        topics: [
+                            'Adsorption',
+                            'Freundlich Adsorption Isotherm',
+                            'Catalysis',
+                            'Enzymes',
+                            'Colloids',
+                            'Tyndall Effect',
+                            'Brownian Movement',
+                            'Coagulation'
+                        ]
+                    },
+                    {
+                        name: 'P-Block Elements',
+                        topics: [
+                            'Group 15 Elements',
+                            'Group 16 Elements',
+                            'Group 17 Elements',
+                            'Group 18 Elements'
+                        ]
+                    },
+                    {
+                        name: 'D & F Block Elements',
+                        topics: [
+                            'Electronic Configuration',
+                            'Lanthanoid Contraction',
+                            'Oxidation States'
+                        ]
+                    },
+                    {
+                        name: 'Haloalkanes & Haloarenes',
+                        topics: [
+                            'SN1 Reaction',
+                            'SN2 Reaction',
+                            'Chirality',
+                            'Optical Activity'
+                        ]
+                    },
+                    {
+                        name: 'Environmental Chemistry',
+                        topics: [
+                            'Atmospheric Pollution',
+                            'Water Pollution',
+                            'Soil Pollution',
+                            'Green Chemistry'
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'biology',
+                name: 'Biology',
+                icon: 'fa-dna',
+                chapters: [
+                    {
+                        name: 'The Living World',
+                        topics: [
+                            'What is Living?',
+                            'Taxonomic Categories',
+                            'Taxonomic Aids'
+                        ]
+                    },
+                    {
+                        name: 'Biological Classification',
+                        topics: [
+                            'Five Kingdom Classification',
+                            'Kingdom Monera',
+                            'Kingdom Protista',
+                            'Kingdom Fungi',
+                            'Kingdom Plantae',
+                            'Kingdom Animalia',
+                            'Viruses, Viroids & Lichens'
+                        ]
+                    },
+                    {
+                        name: 'Plant Kingdom',
+                        topics: [
+                            'Algae',
+                            'Bryophytes',
+                            'Pteridophytes',
+                            'Gymnosperms',
+                            'Angiosperms',
+                            'Plant Life Cycles'
+                        ]
+                    },
+                    {
+                        name: 'Animal Kingdom',
+                        topics: [
+                            'Basis of Classification',
+                            'Classification of Animals'
+                        ]
+                    },
+                    {
+                        name: 'Morphology of Flowering Plants',
+                        topics: [
+                            'The Root',
+                            'The Stem',
+                            'The Leaf',
+                            'The Inflorescence',
+                            'The Flower',
+                            'The Fruit',
+                            'The Seed',
+                            'Semi-technical Description of a Flowering Plant',
+                            'Description of Some Important Families'
+                        ]
+                    },
+                    {
+                        name: 'Anatomy of Flowering Plants',
+                        topics: [
+                            'The Tissues',
+                            'The Tissue System',
+                            'Anatomy of Dicotyledonous and Monocotyledonous Plants',
+                            'Secondary Growth'
+                        ]
+                    },
+                    {
+                        name: 'Structural Organisation in Animals',
+                        topics: [
+                            'Animal Tissues',
+                            'Organ and Organ System',
+                            'Earthworm',
+                            'Cockroach',
+                            'Frog'
+                        ]
+                    },
+                    {
+                        name: 'Cell: The Unit of Life',
+                        topics: [
+                            'Cell Theory',
+                            'An Overview of Cell',
+                            'Prokaryotic Cells',
+                            'Eukaryotic Cells'
+                        ]
+                    },
+                    {
+                        name: 'Biomolecules',
+                        topics: [
+                            'How to Analyse Chemical Composition?',
+                            'Primary and Secondary Metabolites',
+                            'Biomacromolecules',
+                            'Proteins',
+                            'Polysaccharides',
+                            'Nucleic Acids',
+                            'Structure of Proteins',
+                            'Nature of Bond Linking Monomers in a Polymer',
+                            'Dynamic State of Body Constituents – Concept of Metabolism',
+                            'Metabolic Basis for Living',
+                            'The Living State',
+                            'Enzymes'
+                        ]
+                    },
+                    {
+                        name: 'Cell Cycle and Cell Division',
+                        topics: [
+                            'Cell Cycle',
+                            'M Phase',
+                            'Significance of Mitosis',
+                            'Meiosis',
+                            'Significance of Meiosis'
+                        ]
+                    },
+                    {
+                        name: 'Transport in Plants',
+                        topics: [
+                            'Means of Transport',
+                            'Plant-Water Relations',
+                            'Long Distance Transport of Water',
+                            'Transpiration',
+                            'Uptake and Transport of Mineral Nutrients',
+                            'Phloem Transport: Flow from Source to Sink'
+                        ]
+                    },
+                    {
+                        name: 'Mineral Nutrition',
+                        topics: [
+                            'Methods to Study the Mineral Requirements of Plants',
+                            'Essential Mineral Elements',
+                            'Mechanism of Absorption of Elements',
+                            'Translocation of Solutes',
+                            'Soil as Reservoir of Essential Elements',
+                            'Metabolism of Nitrogen'
+                        ]
+                    },
+                    {
+                        name: 'Photosynthesis in Higher Plants',
+                        topics: [
+                            'What do we Know?',
+                            'Early Experiments',
+                            'Where does Photosynthesis take place?',
+                            'How many Pigments are involved in Photosynthesis?',
+                            'What is Light Reaction?',
+                            'The Electron Transport',
+                            'Where are the ATP and NADPH Used?',
+                            'The C4 Pathway',
+                            'Photorespiration',
+                            'Factors affecting Photosynthesis'
+                        ]
+                    },
+                    {
+                        name: 'Respiration in Plants',
+                        topics: [
+                            'Do Plants Breathe?',
+                            'Glycolysis',
+                            'Fermentation',
+                            'Aerobic Respiration',
+                            'The Respiratory Balance Sheet',
+                            'Amphibolic Pathway',
+                            'Respiratory Quotient'
+                        ]
+                    },
+                    {
+                        name: 'Plant Growth and Development',
+                        topics: [
+                            'Growth',
+                            'Differentiation, Dedifferentiation and Redifferentiation',
+                            'Development',
+                            'Plant Growth Regulators',
+                            'Photoperiodism',
+                            'Vernalisation'
+                        ]
+                    },
+                    {
+                        name: 'Digestion and Absorption',
+                        topics: [
+                            'Digestive System',
+                            'Digestion of Food',
+                            'Absorption of Digested Products',
+                            'Disorders of Digestive System'
+                        ]
+                    },
+                    {
+                        name: 'Breathing and Exchange of Gases',
+                        topics: [
+                            'Respiratory Organs',
+                            'Mechanism of Breathing',
+                            'Exchange of Gases',
+                            'Transport of Gases',
+                            'Regulation of Respiration',
+                            'Disorders of Respiratory System'
+                        ]
+                    },
+                    {
+                        name: 'Body Fluids and Circulation',
+                        topics: [
+                            'Blood',
+                            'Lymph (Tissue Fluid)',
+                            'Circulatory Pathways',
+                            'Double Circulation',
+                            'Regulation of Cardiac Activity',
+                            'Disorders of Circulatory System'
+                        ]
+                    },
+                    {
+                        name: 'Excretory Products and their Elimination',
+                        topics: [
+                            'Human Excretory System',
+                            'Urine Formation',
+                            'Function of the Tubules',
+                            'Mechanism of Concentration of the Filtrate',
+                            'Regulation of Kidney Function',
+                            'Micturition',
+                            'Role of other Organs in Excretion',
+                            'Disorders of the Excretory System'
+                        ]
+                    },
+                    {
+                        name: 'Locomotion and Movement',
+                        topics: [
+                            'Types of Movement',
+                            'Muscle',
+                            'Skeletal System',
+                            'Joints',
+                            'Disorders of Muscular and Skeletal System'
+                        ]
+                    },
+                    {
+                        name: 'Neural Control and Coordination',
+                        topics: [
+                            'Neural System',
+                            'Human Neural System',
+                            'Neuron as Structural and Functional Unit of Neural System',
+                            'Central Neural System',
+                            'Reflex Action and Reflex Arc',
+                            'Sensory Reception and Processing'
+                        ]
+                    },
+                    {
+                        name: 'Chemical Coordination and Integration',
+                        topics: [
+                            'Endocrine Glands and Hormones',
+                            'Human Endocrine System',
+                            'Hormones of Heart, Kidney and Gastrointestinal Tract',
+                            'Mechanism of Hormone Action'
+                        ]
+                    },
+                    {
+                        name: 'Reproduction in Organisms',
+                        topics: [
+                            'Asexual Reproduction',
+                            'Sexual Reproduction'
+                        ]
+                    },
+                    {
+                        name: 'Sexual Reproduction in Flowering Plants',
+                        topics: [
+                            'Flower – A Fascinating Organ of Angiosperms',
+                            'Pre-fertilisation: Structures and Events',
+                            'Double Fertilisation',
+                            'Post-fertilisation: Structures and Events',
+                            'Apomixis and Polyembryony'
+                        ]
+                    },
+                    {
+                        name: 'Human Reproduction',
+                        topics: [
+                            'The Male Reproductive System',
+                            'The Female Reproductive System',
+                            'Gametogenesis',
+                            'Menstrual Cycle',
+                            'Fertilisation and Implantation',
+                            'Pregnancy and Embryonic Development',
+                            'Parturition and Lactation'
+                        ]
+                    },
+                    {
+                        name: 'Reproductive Health',
+                        topics: [
+                            'Reproductive Health – Problems and Strategies',
+                            'Population Stabilisation and Birth Control',
+                            'Medical Termination of Pregnancy (MTP)',
+                            'Sexually Transmitted Diseases (STDs)',
+                            'Infertility'
+                        ]
+                    },
+                    {
+                        name: 'Principles of Inheritance and Variation',
+                        topics: [
+                            'Mendel’s Laws of Inheritance',
+                            'Inheritance of One Gene',
+                            'Inheritance of Two Genes',
+                            'Sex Determination',
+                            'Mutation',
+                            'Genetic Disorders'
+                        ]
+                    },
+                    {
+                        name: 'Molecular Basis of Inheritance',
+                        topics: [
+                            'The DNA',
+                            'The Search for Genetic Material',
+                            'RNA World',
+                            'Replication',
+                            'Transcription',
+                            'Genetic Code',
+                            'Translation',
+                            'Regulation of Gene Expression',
+                            'Human Genome Project',
+                            'DNA Fingerprinting'
+                        ]
+                    },
+                    {
+                        name: 'Evolution',
+                        topics: [
+                            'Origin of Life',
+                            'Evolution of Life Forms – A Theory',
+                            'What are the Evidences for Evolution?',
+                            'What is Adaptive Radiation?',
+                            'Biological Evolution',
+                            'Mechanism of Evolution',
+                            'Hardy-Weinberg Principle',
+                            'A Brief Account of Evolution',
+                            'Origin and Evolution of Man'
+                        ]
+                    },
+                    {
+                        name: 'Human Health and Disease',
+                        topics: [
+                            'Common Diseases in Humans',
+                            'Immunity',
+                            'AIDS',
+                            'Cancer',
+                            'Drugs and Alcohol Abuse'
+                        ]
+                    },
+                    {
+                        name: 'Strategies for Enhancement in Food Production',
+                        topics: [
+                            'Animal Husbandry',
+                            'Plant Breeding',
+                            'Single Cell Proteins',
+                            'Tissue Culture'
+                        ]
+                    },
+                    {
+                        name: 'Microbes in Human Welfare',
+                        topics: [
+                            'Microbes in Household Products',
+                            'Microbes in Industrial Products',
+                            'Microbes in Sewage Treatment',
+                            'Microbes in Production of Biogas',
+                            'Microbes as Biocontrol Agents',
+                            'Microbes as Biofertilisers'
+                        ]
+                    },
+                    {
+                        name: 'Biotechnology: Principles and Processes',
+                        topics: [
+                            'Principles of Biotechnology',
+                            'Tools of Recombinant DNA Technology',
+                            'Processes of Recombinant DNA Technology'
+                        ]
+                    },
+                    {
+                        name: 'Biotechnology and its Applications',
+                        topics: [
+                            'Biotechnological Applications in Agriculture',
+                            'Biotechnological Applications in Medicine',
+                            'Transgenic Animals',
+                            'Ethical Issues'
+                        ]
+                    },
+                    {
+                        name: 'Organisms and Populations',
+                        topics: [
+                            'Organism and Its Environment',
+                            'Populations'
+                        ]
+                    },
+                    {
+                        name: 'Ecosystem',
+                        topics: [
+                            'Ecosystem – Structure and Function',
+                            'Productivity',
+                            'Decomposition',
+                            'Energy Flow',
+                            'Ecological Pyramids',
+                            'Ecological Succession',
+                            'Nutrient Cycling',
+                            'Ecosystem Services'
+                        ]
+                    },
+                    {
+                        name: 'Biodiversity and Conservation',
+                        topics: [
+                            'Biodiversity',
+                            'Biodiversity Conservation'
+                        ]
+                    },
+                    {
+                        name: 'Environmental Issues',
+                        topics: [
+                            'Air Pollution and Its Control',
+                            'Water Pollution and Its Control',
+                            'Solid Wastes',
+                            'Agro-chemicals and Their Effects',
+                            'Radioactive Wastes',
+                            'Greenhouse Effect and Global Warming',
+                            'Ozone Depletion in the Stratosphere',
+                            'Degradation by Improper Resource Utilisation and Maintenance',
+                            'Deforestation'
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generate subject tabs
+            const subjectTabs = document.getElementById('subjectTabs');
+            subjects.forEach((subject, index) => {
+                const tab = document.createElement('div');
+                tab.className = `nav-tab ${index === 0 ? 'active' : ''}`;
+                tab.dataset.subject = subject.id;
+                tab.innerHTML = `<i class="fas ${subject.icon}"></i> ${subject.name}`;
+                tab.addEventListener('click', () => switchSubject(subject.id));
+                subjectTabs.appendChild(tab);
+            });
+
+            // Generate content for each subject
+            subjects.forEach(subject => {
+                const chapterContainer = document.getElementById(`${subject.id}Chapters`);
+                subject.chapters.forEach(chapter => {
+                    const chapterElement = document.createElement('div');
+                    chapterElement.className = 'chapter';
+                    chapterElement.innerHTML = `
+                        <div class="chapter-header" onclick="toggleChapter(this)">
+                            <div class="chapter-title">${chapter.name}</div>
+                            <div class="chapter-progress">
+                                <div class="chapter-progress-bar">
+                                    <div class="chapter-progress-fill" style="width: 0%"></div>
+                                </div>
+                                <div class="chapter-progress-text">0%</div>
+                                <i class="fas fa-chevron-down expand-icon"></i>
+                            </div>
+                        </div>
+                        <div class="topics-container" style="display: none;">
+                            ${chapter.topics.map(topic => `
+                                <div class="topic-item">
+                                    <div class="topic-header">
+                                        <div class="topic-name">${topic}</div>
+                                        <div class="topic-status"></div>
+                                    </div>
+                                    <div class="topic-checkboxes">
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" class="cyber-checkbox" id="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-short-notes">
+                                            <label for="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-short-notes"></label>
+                                            <span class="checkbox-label">Short Notes</span>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" class="cyber-checkbox" id="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-revision">
+                                            <label for="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-revision"></label>
+                                            <span class="checkbox-label">Revision</span>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" class="cyber-checkbox" id="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-pyq">
+                                            <label for="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-pyq"></label>
+                                            <span class="checkbox-label">PYQ</span>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" class="cyber-checkbox" id="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-ncert">
+                                            <label for="${subject.id}-${chapter.name.replace(/\s+/g, '-')}-${topic.replace(/\s+/g, '-')}-ncert"></label>
+                                            <span class="checkbox-label">NCERT</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    chapterContainer.appendChild(chapterElement);
+                });
+            });
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.cyber-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateProgress);
+            });
+
+            // Save progress button
+            document.getElementById('saveProgress').addEventListener('click', saveProgress);
+
+            // Initialize auto typing effect
+            initAutoType();
+
+            // Initialize progress
+            updateProgress();
+        });
+
+        // Function to switch between subjects
+        function switchSubject(subjectId) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.subject === subjectId) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Update active page
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+                if (page.id === `page-${subjectId}`) {
+                    page.classList.add('active');
+                }
+            });
+        }
+
+        // Function to toggle chapter expansion
+        function toggleChapter(element) {
+            const chapter = element.parentElement;
+            const topicsContainer = chapter.querySelector('.topics-container');
+            const isExpanded = topicsContainer.style.display === 'grid';
+            
+            if (isExpanded) {
+                topicsContainer.style.display = 'none';
+                chapter.classList.remove('expanded');
+            } else {
+                topicsContainer.style.display = 'grid';
+                chapter.classList.add('expanded');
+            }
+        }
+
+        // Function to update progress
+        function updateProgress() {
+            let totalCheckboxes = 0;
+            let checkedCheckboxes = 0;
+            
+            // Update chapter progress
+            document.querySelectorAll('.chapter').forEach(chapter => {
+                const checkboxes = chapter.querySelectorAll('.cyber-checkbox');
+                const chapterCheckboxes = checkboxes.length;
+                const chapterChecked = chapter.querySelectorAll('.cyber-checkbox:checked').length;
+                
+                totalCheckboxes += chapterCheckboxes;
+                checkedCheckboxes += chapterChecked;
+                
+                const progressPercent = chapterCheckboxes > 0 ? (chapterChecked / chapterCheckboxes) * 100 : 0;
+                
+                chapter.querySelector('.chapter-progress-fill').style.width = `${progressPercent}%`;
+                chapter.querySelector('.chapter-progress-text').textContent = `${Math.round(progressPercent)}%`;
+                
+                // Update topic status indicators
+                chapter.querySelectorAll('.topic-item').forEach(topic => {
+                    const topicCheckboxes = topic.querySelectorAll('.cyber-checkbox');
+                    const topicChecked = topic.querySelectorAll('.cyber-checkbox:checked').length;
+                    const statusIndicator = topic.querySelector('.topic-status');
+                    
+                    if (topicChecked === topicCheckboxes.length) {
+                        statusIndicator.classList.add('completed');
+                    } else {
+                        statusIndicator.classList.remove('completed');
+                    }
+                });
+            });
+            
+            // Update overall progress
+            const progressPercent = totalCheckboxes > 0 ? (checkedCheckboxes / totalCheckboxes) * 100 : 0;
+            document.getElementById('overallProgress').style.width = `${progressPercent}%`;
+            
+            // Update stats
+            document.getElementById('completedTopics').textContent = checkedCheckboxes;
+            document.getElementById('completionRate').textContent = `${Math.round(progressPercent)}%`;
+            document.getElementById('remainingTopics').textContent = totalCheckboxes - checkedCheckboxes;
+        }
+
+        // Function to save progress
+        function saveProgress() {
+            const terminalText = document.getElementById('terminalText');
+            terminalText.textContent = "Progress synchronized to neural network. Data secured in blockchain.";
+            
+            // Simulate saving to localStorage
+            const progressData = {};
+            document.querySelectorAll('.cyber-checkbox').forEach(checkbox => {
+                progressData[checkbox.id] = checkbox.checked;
+            });
+            
+            localStorage.setItem('neuralTrackProgress', JSON.stringify(progressData));
+            
+            // Show confirmation message
+            setTimeout(() => {
+                terminalText.textContent = "Neural synchronization complete. All data secured.";
+            }, 3000);
+        }
+
+        // Function to initialize auto typing effect
+        function initAutoType() {
+            const texts = [
+                "STUDY HARD WHAT INTEREST YOU THE MOST IN THE MOST UNDISCIPLINED, IRRELEVENT AND ORIGINAL MANNER POSSIBLE",
+                "IN THE RIGHT EYES YOU WILL BE AN ART",
+                "TO FIND YOURSELF, WAIT FOR WORLD TO SLEEP.... AND LET MOON GUIDE YOU.",
+                "SOMITES ITS OKAY TO DISAPPEAR FROM THIS CHOATIC WORLD TO GET BACK TO YOURSELF",
+                "WHEN I TRY TO SLEEP BUT THEN I THINK AND I THINK AND I THINK....",
+                "MAYBE THE TRUE GOAL IS BUILD A LIFE YOU DONT HAVE TO ESCAPE FROM",
+                "PLANT YOUR GOODNESS QUIETLY, LIFE HAS A WAY OF BLOOMING IT BACK IN PLACES WHERE YOU LEAST EXPECT",
+                "TO LOVE SOMEONE MEANS TO SEE THEM AS GOD INTENDED THEM",
+            ];
+            
+            let textIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            let typingDelay = 100;
+            
+            function type() {
+                const currentText = texts[textIndex];
+                const autoTypeElement = document.getElementById('autoType');
+                
+                if (isDeleting) {
+                    autoTypeElement.textContent = currentText.substring(0, charIndex - 1);
+                    charIndex--;
+                    typingDelay = 50;
+                } else {
+                    autoTypeElement.textContent = currentText.substring(0, charIndex + 1);
+                    charIndex++;
+                    typingDelay = 100;
+                }
+                
+                if (!isDeleting && charIndex === currentText.length) {
+                    isDeleting = true;
+                    typingDelay = 1500;
+                } else if (isDeleting && charIndex === 0) {
+                    isDeleting = false;
+                    textIndex = (textIndex + 1) % texts.length;
+                    typingDelay = 500;
+                }
+                
+                setTimeout(type, typingDelay);
+            }
+            
+            setTimeout(type, 1000);
+        }
+    </script>
+</body>
+</html>
