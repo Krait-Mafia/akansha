@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRAIT - Progress Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Your existing styles remain the same */
+        :root {
+            --primary: #00f7ff;
+            --primary-glow: #00f7ff80;
+            --secondary: #ff00c8;
+            --secondary-glow: #ff00c880;
+            --accent: #9600ff;
+            --success: #00ff9d;
+            --warning: #ffcc00;
+            --danger: #ff3366;
+            --dark: #0a0a18;
+            --darker: #050510;
+            --light: #ccd6f6;
+            --gray: #8892b0;
+            --cyber-border: #00f7ff33;
+            --cyber-bg: rgba(10, 15, 35, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', 'Orbitron', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 247, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 200, 0.05) 0%, transparent 20%),
+                linear-gradient(to bottom, var(--darker), var(--dark));
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* All your existing styles remain the same */
+        /* ... */
+        
+        /* New styles for progress page */
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-card {
+            background: var(--cyber-bg);
+            border-radius: 4px;
+            padding: 20px;
+            border: 1px solid var(--cyber-border);
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.1);
+            position: relative;
+        }
+        
+        .progress-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--secondary), var(--primary));
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        
+        .subject-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .subject-btn {
+            padding: 10px 20px;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            border: 1px solid var(--cyber-border);
+            color: var(--gray);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .subject-btn.active {
+            background: rgba(0, 247, 255, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        
+        .subject-btn:hover:not(.active) {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .goal-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--cyber-border);
+        }
+        
+        .goal-checkbox {
+            margin-right: 15px;
+        }
+        
+        .goal-content {
+            flex: 1;
+        }
+        
+        .goal-title {
+            font-size: 1rem;
+            color: var(--light);
+            margin-bottom: 5px;
+        }
+        
+        .goal-progress {
+            height: 6px;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .goal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .quote-container {
+            background: rgba(0, 10, 30, 0.5);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--cyber-border);
+            margin-bottom: 15px;
+        }
+        
+        .quote-text {
+            font-style: italic;
+            color: var(--light);
+            margin-bottom: 10px;
+        }
+        
+        .quote-author {
+            text-align: right;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+        
+        .learning-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .learning-stat {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 10, 30, 0.5);
+            border-radius: 4px;
+            border: 1px solid var(--cyber-border);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        .new-goal-form {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(10, 15, 30, 0.7);
+            border: 1px solid var(--cyber-border);
+            border-radius: 4px;
+            color: var(--light);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px var(--primary-glow);
+        }
+        
+        .add-goal-btn {
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: var(--darker);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        
+        .add-goal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+    </style>
+</head>
+<body>
+    <div class="cyberpunk-bg"></div>
+    <div class="hologram"></div>
+    <div class="hologram"></div>
+    <div class="hologram"></div>
+    
+    <div class="container">
+        <header>
+            <h1>KRAIT Progress Tracker</h1>
+            <p class="subtitle" id="autoType">ANALYZING STUDY PATTERNS // TRACKING KNOWLEDGE ASSIMILATION</p>
+        </header>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-page="progress"><i class="fas fa-chart-line"></i> Progress Dashboard</div>
+            <div class="nav-tab" data-page="physics"><i class="fas fa-atom"></i> Physics</div>
+            <div class="nav-tab" data-page="chemistry"><i class="fas fa-flask"></i> Chemistry</div>
+            <div class="nav-tab" data-page="biology"><i class="fas fa-dna"></i> Biology</div>
+            <div class="nav-tab" data-page="goals"><i class="fas fa-bullseye"></i> Goals</div>
+            <div class="nav-tab" data-page="quotes"><i class="fas fa-quote-right"></i> Motivational Quotes</div>
+            <div class="nav-tab" data-page="learning"><i class="fas fa-brain"></i> Learning Stats</div>
+        </div>
+        
+        <div class="page active" id="page-progress">
+            <h2 class="page-title">Progress Analytics Dashboard</h2>
+            
+            <div class="subject-buttons">
+                <div class="subject-btn active" data-subject="all">All Subjects</div>
+                <div class="subject-btn" data-subject="physics">Physics</div>
+                <div class="subject-btn" data-subject="chemistry">Chemistry</div>
+                <div class="subject-btn" data-subject="biology">Biology</div>
+            </div>
+            
+            <div class="progress-grid">
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-calendar-day"></i> Daily Completion Trend</div>
+                    <div class="chart-container">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-subject"></i> Subject-wise Distribution</div>
+                    <div class="chart-container">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-tachometer-alt"></i> Weekly Performance</div>
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-fire"></i> Consistency Streak</div>
+                    <div class="chart-container">
+                        <canvas id="streakChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="neet-humor">
+                <div class="humor-title">PROGRESS TIP #1</div>
+                <div class="humor-text">"Tracking your progress is like watching your brain gain XP points. Level up!"</div>
+            </div>
+        </div>
+        
+        <!-- Your existing subject pages remain the same -->
+        <div class="page" id="page-physics">
+            <h2 class="page-title">Physics Knowledge Matrix</h2>
+            <div class="chapter-container" id="physicsChapters">
+                <!-- Physics chapters will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="page" id="page-chemistry">
+            <h2 class="page-title">Chemistry Knowledge Matrix</h2>
+            <div class="chapter-container" id="chemistryChapters">
+                <!-- Chemistry chapters will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="page" id="page-biology">
+            <h2 class="page-title">Biology Knowledge Matrix</h2>
+            <div class="chapter-container" id="biologyChapters">
+                <!-- Biology chapters will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- New Goals Page -->
+        <div class="page" id="page-goals">
+            <h2 class="page-title">Study Goals & Targets</h2>
+            
+            <div class="progress-card">
+                <div class="card-title"><i class="fas fa-bullseye"></i> Current Goals</div>
+                
+                <div class="goal-item">
+                    <div class="goal-checkbox">
+                        <input type="checkbox" class="cyber-checkbox" id="goal-1">
+                        <label for="goal-1"></label>
+                    </div>
+                    <div class="goal-content">
+                        <div class="goal-title">Complete Electrostatics chapter</div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-fill" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="goal-item">
+                    <div class="goal-checkbox">
+                        <input type="checkbox" class="cyber-checkbox" id="goal-2">
+                        <label for="goal-2"></label>
+                    </div>
+                    <div class="goal-content">
+                        <div class="goal-title">Solve 50 PYQs from Organic Chemistry</div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-fill" style="width: 30%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="goal-item">
+                    <div class="goal-checkbox">
+                        <input type="checkbox" class="cyber-checkbox" id="goal-3">
+                        <label for="goal-3"></label>
+                    </div>
+                    <div class="goal-content">
+                        <div class="goal-title">Revise all of Genetics in 3 days</div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-fill" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="new-goal-form">
+                    <div class="form-group">
+                        <label class="form-label">New Goal</label>
+                        <input type="text" class="form-input" id="newGoalTitle" placeholder="E.g., Complete 100 MCQs">
+                    </div>
+                    <button class="add-goal-btn" id="addGoalBtn">Add Goal</button>
+                </div>
+            </div>
+            
+            <div class="neet-humor">
+                <div class="humor-title">GOAL TIP #1</div>
+                <div class="humor-text">"Setting goals is the first step in turning the invisible into the visible."</div>
+            </div>
+        </div>
+        
+        <!-- New Quotes Page -->
+        <div class="page" id="page-quotes">
+            <h2 class="page-title">Motivational Quotes</h2>
+            
+            <div class="progress-card">
+                <div class="card-title"><i class="fas fa-quote-left"></i> Today's Motivation</div>
+                
+                <div class="quote-container">
+                    <div class="quote-text">"The future belongs to those who believe in the beauty of their dreams."</div>
+                    <div class="quote-author">- Eleanor Roosevelt</div>
+                </div>
+                
+                <div class="quote-container">
+                    <div class="quote-text">"Success is the sum of small efforts, repeated day in and day out."</div>
+                    <div class="quote-author">- Robert Collier</div>
+                </div>
+                
+                <div class="quote-container">
+                    <div class="quote-text">"Don't let what you cannot do interfere with what you can do."</div>
+                    <div class="quote-author">- John Wooden</div>
+                </div>
+            </div>
+            
+            <div class="progress-card">
+                <div class="card-title"><i class="fas fa-plus-circle"></i> Add Your Own Quote</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Quote</label>
+                    <textarea class="form-input" id="quoteText" rows="3" placeholder="Enter an inspiring quote"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Author</label>
+                    <input type="text" class="form-input" id="quoteAuthor" placeholder="Author name">
+                </div>
+                
+                <button class="add-goal-btn" id="addQuoteBtn">Save Quote</button>
+            </div>
+        </div>
+        
+        <!-- New Learning Stats Page -->
+        <div class="page" id="page-learning">
+            <h2 class="page-title">Learning Statistics</h2>
+            
+            <div class="progress-grid">
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-clock"></i> Study Time Analysis</div>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-brain"></i> Knowledge Retention</div>
+                    <div class="learning-stats">
+                        <div class="learning-stat">
+                            <div class="stat-value">87%</div>
+                            <div class="stat-label">Physics</div>
+                        </div>
+                        <div class="learning-stat">
+                            <div class="stat-value">92%</div>
+                            <div class="stat-label">Chemistry</div>
+                        </div>
+                        <div class="learning-stat">
+                            <div class="stat-value">78%</div>
+                            <div class="stat-label">Biology</div>
+                        </div>
+                        <div class="learning-stat">
+                            <div class="stat-value">85%</div>
+                            <div class="stat-label">Overall</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-trophy"></i> Achievement Badges</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                        <div>
+                            <i class="fas fa-fire" style="font-size: 2rem; color: var(--success);"></i>
+                            <div style="font-size: 0.8rem; margin-top: 5px;">7-Day Streak</div>
+                        </div>
+                        <div>
+                            <i class="fas fa-brain" style="font-size: 2rem; color: var(--primary);"></i>
+                            <div style="font-size: 0.8rem; margin-top: 5px">Quick Learner</div>
+                        </div>
+                        <div>
+                            <i class="fas fa-book" style="font-size: 2rem; color: var(--secondary);"></i>
+                            <div style="font-size: 0.8rem; margin-top: 5px">100 Topics</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-card">
+                    <div class="card-title"><i class="fas fa-chart-pie"></i> Topic Mastery</div>
+                    <div class="chart-container">
+                        <canvas id="masteryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="save-btn" id="saveProgress">SYNC PROGRESS TO NEURAL NETWORK</button>
+        
+        <div class="terminal-output">
+            <span class="terminal-prompt">KRAIT-TARUN://SYSTEM_MEOW-MAFIA></span>
+            <span class="terminal-text" id="terminalText">Progress analytics initialized. Tracking knowledge assimilation patterns.</span>
+        </div>
+    </div>
+
+    <script>
+        // Your existing data and initialization code remains the same
+        // ...
+        
+        // New code for progress tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize navigation tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const pageId = this.dataset.page;
+                    
+                    // Update active tab
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding page
+                    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                    document.getElementById(`page-${pageId}`).classList.add('active');
+                });
+            });
+            
+            // Initialize subject filter buttons
+            document.querySelectorAll('.subject-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    updateCharts(this.dataset.subject);
+                });
+            });
+            
+            // Initialize progress charts
+            initializeCharts();
+            
+            // Load saved progress data
+            loadProgressData();
+            
+            // Set up event listeners for goal management
+            document.getElementById('addGoalBtn').addEventListener('click', addNewGoal);
+            document.getElementById('addQuoteBtn').addEventListener('click', addNewQuote);
+            
+            // Update progress when checkboxes change
+            document.querySelectorAll('.cyber-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateProgress();
+                    saveProgress();
+                    updateCharts('all');
+                });
+            });
+            
+            // Save progress button
+            document.getElementById('saveProgress').addEventListener('click', saveProgress);
+        });
+        
+        // Initialize all charts
+        function initializeCharts() {
+            // Daily completion chart
+            const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+            window.dailyChart = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Topics Completed',
+                        data: [12, 19, 8, 15, 22, 18, 11],
+                        borderColor: '#00f7ff',
+                        backgroundColor: 'rgba(0, 247, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            ticks: {
+                                color: '#ccd6f6'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            ticks: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Subject distribution chart
+            const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+            window.subjectChart = new Chart(subjectCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Physics', 'Chemistry', 'Biology'],
+                    datasets: [{
+                        data: [35, 40, 25],
+                        backgroundColor: [
+                            'rgba(0, 247, 255, 0.8)',
+                            'rgba(255, 0, 200, 0.8)',
+                            'rgba(150, 0, 255, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(0, 247, 255, 1)',
+                            'rgba(255, 0, 200, 1)',
+                            'rgba(150, 0, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#ccd6f6',
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Weekly performance chart
+            const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+            window.weeklyChart = new Chart(weeklyCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Completion Rate (%)',
+                        data: [65, 78, 72, 85],
+                        backgroundColor: 'rgba(0, 247, 255, 0.5)',
+                        borderColor: 'rgba(0, 247, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            ticks: {
+                                color: '#ccd6f6'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            ticks: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Consistency streak chart
+            const streakCtx = document.getElementById('streakChart').getContext('2d');
+            window.streakChart = new Chart(streakCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Study Days',
+                        data: [20, 22, 25, 27, 26, 28],
+                        borderColor: '#ff00c8',
+                        backgroundColor: 'rgba(255, 0, 200, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            ticks: {
+                                color: '#ccd6f6'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            ticks: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Study time analysis chart
+            const timeCtx = document.getElementById('timeChart').getContext('2d');
+            window.timeChart = new Chart(timeCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
+                    datasets: [{
+                        data: [2.5, 1.8, 3.2, 2.0],
+                        backgroundColor: [
+                            'rgba(0, 247, 255, 0.6)',
+                            'rgba(255, 0, 200, 0.6)',
+                            'rgba(150, 0, 255, 0.6)',
+                            'rgba(0, 255, 157, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(0, 247, 255, 1)',
+                            'rgba(255, 0, 200, 1)',
+                            'rgba(150, 0, 255, 1)',
+                            'rgba(0, 255, 157, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#ccd6f6',
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Topic mastery chart
+            const masteryCtx = document.getElementById('masteryChart').getContext('2d');
+            window.masteryChart = new Chart(masteryCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Electrostatics', 'Organic', 'Genetics', 'Mechanics', 'Thermo', 'Ecology'],
+                    datasets: [{
+                        label: 'Mastery Level',
+                        data: [85, 75, 65, 90, 70, 60],
+                        backgroundColor: 'rgba(0, 247, 255, 0.2)',
+                        borderColor: 'rgba(0, 247, 255, 1)',
+                        pointBackgroundColor: 'rgba(0, 247, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(0, 247, 255, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            grid: {
+                                color: 'rgba(136, 146, 176, 0.2)'
+                            },
+                            pointLabels: {
+                                color: '#ccd6f6'
+                            },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: '#ccd6f6'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccd6f6'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update charts based on selected subject filter
+        function updateCharts(subject) {
+            // In a real application, you would fetch data based on the subject filter
+            // For this example, we'll just simulate some data changes
+            
+            if (subject === 'all') {
+                window.dailyChart.data.datasets[0].data = [12, 19, 8, 15, 22, 18, 11];
+                window.subjectChart.data.datasets[0].data = [35, 40, 25];
+            } else if (subject === 'physics') {
+                window.dailyChart.data.datasets[0].data = [5, 8, 3, 6, 9, 7, 4];
+                window.subjectChart.data.datasets[0].data = [100, 0, 0];
+            } else if (subject === 'chemistry') {
+                window.dailyChart.data.datasets[0].data = [4, 6, 3, 5, 8, 6, 4];
+                window.subjectChart.data.datasets[0].data = [0, 100, 0];
+            } else if (subject === 'biology') {
+                window.dailyChart.data.datasets[0].data = [3, 5, 2, 4, 5, 5, 3];
+                window.subjectChart.data.datasets[0].data = [0, 0, 100];
+            }
+            
+            window.dailyChart.update();
+            window.subjectChart.update();
+        }
+        
+        // Add a new goal
+        function addNewGoal() {
+            const goalTitle = document.getElementById('newGoalTitle').value.trim();
+            if (!goalTitle) return;
+            
+            const goalsContainer = document.querySelector('#page-goals .progress-card');
+            const goalItem = document.createElement('div');
+            goalItem.className = 'goal-item';
+            goalItem.innerHTML = `
+                <div class="goal-checkbox">
+                    <input type="checkbox" class="cyber-checkbox" id="goal-${Date.now()}">
+                    <label for="goal-${Date.now()}"></label>
+                </div>
+                <div class="goal-content">
+                    <div class="goal-title">${goalTitle}</div>
+                    <div class="goal-progress">
+                        <div class="goal-progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert before the form
+            goalsContainer.insertBefore(goalItem, document.querySelector('.new-goal-form'));
+            
+            // Clear input
+            document.getElementById('newGoalTitle').value = '';
+            
+            // Add event listener to the new checkbox
+            goalItem.querySelector('.cyber-checkbox').addEventListener('change', function() {
+                updateProgress();
+                saveProgress();
+            });
+            
+            // Save updated goals
+            saveProgress();
+        }
+        
+        // Add a new quote
+        function addNewQuote() {
+            const quoteText = document.getElementById('quoteText').value.trim();
+            const quoteAuthor = document.getElementById('quoteAuthor').value.trim();
+            
+            if (!quoteText) return;
+            
+            const quotesContainer = document.querySelector('#page-quotes .progress-card');
+            const quoteElement = document.createElement('div');
+            quoteElement.className = 'quote-container';
+            quoteElement.innerHTML = `
+                <div class="quote-text">"${quoteText}"</div>
+                <div class="quote-author">- ${quoteAuthor || 'Anonymous'}</div>
+            `;
+            
+            // Insert after the title
+            quotesContainer.insertBefore(quoteElement, quotesContainer.childNodes[2]);
+            
+            // Clear inputs
+            document.getElementById('quoteText').value = '';
+            document.getElementById('quoteAuthor').value = '';
+            
+            // Save updated quotes
+            saveProgress();
+        }
+        
+        // Load progress data from localStorage
+        function loadProgressData() {
+            const savedData = localStorage.getItem('neuralTrackProgress');
+            if (savedData) {
+                const progressData = JSON.parse(savedData);
+                
+                // Restore checkbox states
+                for (const [id, checked] of Object.entries(progressData)) {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox) {
+                        checkbox.checked = checked;
+                    }
+                }
+                
+                // Update progress display
+                updateProgress();
+            }
+            
+            // Load any additional saved data (goals, quotes, etc.)
+            // This would be expanded in a real application
+        }
+        
+        // Your existing updateProgress and saveProgress functions remain the same
+        // ...
+    </script>
+</body>
+</html>
